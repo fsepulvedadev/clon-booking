@@ -1,13 +1,22 @@
 import { StyleSheet, Text, View } from "react-native";
-import React, { useLayoutEffect } from "react";
+import React, { useLayoutEffect, useState } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { Octicons } from "@expo/vector-icons";
 import { Pressable } from "react-native";
 import { ScrollView } from "react-native";
 import PropertyCard from "../components/PropertyCard";
+import {
+  BottomModal,
+  ModalContent,
+  ModalFooter,
+  ModalTitle,
+  SlideAnimation,
+} from "react-native-modals";
+import { FontAwesome } from "@expo/vector-icons";
 
 const PlacesScreen = () => {
+  const route = useRoute();
   const data = [
     {
       id: "0",
@@ -469,8 +478,23 @@ const PlacesScreen = () => {
       ],
     },
   ];
+  const searchPlaces = data?.filter(
+    (item) => item.place === route.params.place
+  );
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState();
+  const [sortedData, setSortedData] = useState(data);
+  const filtros = [
+    {
+      id: "0",
+      filtro: "Precio más bajo primero",
+    },
+    {
+      id: "1",
+      filtro: "Precio más alto primero",
+    },
+  ];
 
-  const route = useRoute();
   console.log(route.params);
   const navigation = useNavigation();
 
@@ -502,6 +526,26 @@ const PlacesScreen = () => {
     });
   }, []);
 
+  const compare = () => {};
+  const comparasion = () => {};
+
+  const applyFilter = (filter) => {
+    setModalVisible(false);
+    switch (filter) {
+      case "Precio más bajo primero":
+        searchPlaces.map((val) => val.properties.sort(compare));
+
+        setSortedData(searchPlaces);
+        break;
+
+      case "Precio más alto primero":
+        searchPlaces.map((val) => val.properties.sort(comparasion));
+        setSortedData(searchPlaces);
+
+        break;
+    }
+  };
+
   return (
     <View>
       <Pressable
@@ -514,7 +558,10 @@ const PlacesScreen = () => {
           backgroundColor: "white",
         }}
       >
-        <Pressable style={{ flexDirection: "row", alignItems: "center" }}>
+        <Pressable
+          onPressIn={() => setModalVisible(true)}
+          style={{ flexDirection: "row", alignItems: "center" }}
+        >
           <Octicons name="arrow-switch" size={24} color="grey" />
           <Text style={{ fontSize: 15, fontWeight: "500", marginLeft: 8 }}>
             Ordenar
@@ -535,7 +582,7 @@ const PlacesScreen = () => {
         </Pressable>
       </Pressable>
       <ScrollView style={{ backgroundColor: "#f5F5F5" }}>
-        {data
+        {sortedData
           ?.filter((item) => item.place === route.params.place)
           .map((item) =>
             item.properties.map((property, index) => (
@@ -551,6 +598,80 @@ const PlacesScreen = () => {
             ))
           )}
       </ScrollView>
+
+      <BottomModal
+        swipeThreshold={100}
+        footer={
+          <ModalFooter>
+            <Pressable
+              onPressIn={() => applyFilter(selectedFilter)}
+              style={{
+                paddingRight: 10,
+                marginLeft: "auto",
+                marginRight: "auto",
+                marginVertical: 10,
+                marginBottom: 20,
+              }}
+            >
+              <Text>Aplicar</Text>
+            </Pressable>
+          </ModalFooter>
+        }
+        swipeDirection={["up", "down"]}
+        onbackDropPress={() => setModalVisible(false)}
+        modalTitle={<ModalTitle title="Ordenar y Filtrar" />}
+        modalAnimation={new SlideAnimation({ slideFrom: "bottom" })}
+        visible={modalVisible}
+        onTouchOutside={() => {
+          setModalVisible(false);
+        }}
+        onHardwareBackPress={() => {
+          setModalVisible(false);
+        }}
+      >
+        <ModalContent style={{ width: "100%", height: 280 }}>
+          <View style={{ flexDirection: "row" }}>
+            <View
+              style={{
+                marginVertical: 10,
+                flex: 2,
+                height: 280,
+                borderRightWidth: 1,
+                borderColor: "#e0e0e0",
+              }}
+            >
+              <Text style={{ textAlign: "center" }}>Ordenar</Text>
+            </View>
+            <View style={{ flex: 3, margin: 10 }}>
+              {filtros.map((filtro, index) => (
+                <Pressable
+                  onPressIn={() => {
+                    setSelectedFilter(filtro.filtro);
+                    console.log(selectedFilter);
+                  }}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginVertical: 10,
+                  }}
+                  key={index}
+                >
+                  {selectedFilter.includes(filtro.filtro) ? (
+                    <FontAwesome name="circle" size={18} color="green" />
+                  ) : (
+                    <FontAwesome name="circle-o" size={18} color="grey" />
+                  )}
+                  <Text
+                    style={{ fontSize: 16, fontWeight: "500", marginLeft: 6 }}
+                  >
+                    {filtro.filtro}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </ModalContent>
+      </BottomModal>
     </View>
   );
 };

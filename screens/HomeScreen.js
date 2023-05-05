@@ -343,6 +343,7 @@ const HomeScreen = () => {
         swipeThreshold={100}
         onHardwareBackPress={() => setModalVisible(false)}
         swipeDirection={["up", "down"]}
+        onbackDropPress={() => setModalVisible(false)}
         onSwipeOut={() => setModalVisible(false)}
         footer={
           <ModalFooter
